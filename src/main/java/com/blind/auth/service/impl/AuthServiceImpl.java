@@ -5,9 +5,11 @@ import com.blind.auth.dto.request.RegisterRequest;
 import com.blind.auth.dto.response.AuthenticationResponse;
 import com.blind.auth.entity.BlindUser;
 import com.blind.auth.entity.enumeration.Role;
+import com.blind.auth.producer.EmailVerificationProducer;
 import com.blind.auth.repository.BlindUserRepository;
 import com.blind.auth.security.JwtService;
 import com.blind.auth.service.AuthService;
+import com.blind.common.kafka.event.EmailVerificationEvent;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,9 +34,11 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
 
+    private final EmailVerificationProducer emailVerificationProducer;
+
     @Override
     @Transactional
-    public AuthenticationResponse register(RegisterRequest request) {
+    public void register(RegisterRequest request) {
         checkAndThrowExceptionIfUserByEmailExist(request.getEmail());
         BlindUser blindUser = BlindUser.builder()
                 .firstName(request.getFirstName())
@@ -44,10 +48,10 @@ public class AuthServiceImpl implements AuthService {
                 .role(Role.USER)
                 .build();
         blindUserRepository.save(blindUser);
-        String jwtToken = jwtService.generateToken(blindUser);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+        emailVerificationProducer.sendMessage(EmailVerificationEvent.builder()
+                        .blindUserId(blindUser.getBlindUserId())
+                        .blindUserEmail(blindUser.getEmail())
+                .build());
     }
 
     @Override

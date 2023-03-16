@@ -6,7 +6,7 @@ import com.blind.auth.dto.request.RegisterRequest;
 import com.blind.auth.dto.response.AuthenticationResponse;
 
 public interface AuthService {
-    AuthenticationResponse register(RegisterRequest request);
+    void register(RegisterRequest request);
 
     AuthenticationResponse authenticate(AuthenticationRequest request);
 }

@@ -29,7 +29,7 @@ public class BlindUser implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer blindUserId;
+    private Long blindUserId;
 
     private String firstName;
 
